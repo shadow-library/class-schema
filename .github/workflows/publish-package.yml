@@ -45,7 +45,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Bump version
-        run: bunx release-it ${{ github.event.inputs.bump }} --dry-run --ci
+        run: bunx release-it ${{ github.event.inputs.bump }} --ci
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
