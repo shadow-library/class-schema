@@ -2,7 +2,7 @@
   "name": "@shadow-library/class-schema",
   "private": true,
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.0.2-0",
   "description": "Decorator-based JSON schema generator at runtime",
   "main": "src/index.ts",
   "scripts": {
