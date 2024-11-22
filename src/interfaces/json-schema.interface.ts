@@ -10,11 +10,11 @@
  * Defining types
  */
 
-type SchemaWithOutType<T> = Omit<T, 'type'>;
+type SchemaWithOutCommonTypes<T> = Omit<T, 'type' | 'enum' | 'default' | 'examples' | 'const'>;
 
 export type JSONSchemaType = 'string' | 'number' | 'boolean' | 'array' | 'object';
 
-export interface JSONBasicSchema {
+export interface JSONBasicSchema<T> {
   /** Basic schema properties */
   $id?: string;
   $ref?: string;
@@ -23,24 +23,28 @@ export interface JSONBasicSchema {
   /** Metadata and annotations */
   title?: string;
   description?: string;
-  default?: any;
-  examples?: any[];
+  enum?: T[];
+  default?: T;
+  examples?: T[];
 
   /** Other possible fields */
-  const?: any;
+  const?: T;
   definitions?: Record<string, JSONSchema>;
+  [key: string]: unknown;
 }
 
-export interface JSONObjectSchema extends JSONBasicSchema {
+export interface JSONObjectSchema extends JSONBasicSchema<object> {
   type: 'object';
   properties?: Record<string, JSONSchema>;
   required?: string[];
+  maxProperties?: number;
+  minProperties?: number;
   additionalProperties?: boolean | JSONSchema;
   patternProperties?: Record<string, JSONSchema>;
   dependencies?: Record<string, JSONSchema | string[]>;
 }
 
-export interface JSONArraySchema extends JSONBasicSchema {
+export interface JSONArraySchema extends JSONBasicSchema<any[]> {
   type: 'array';
   items?: JSONSchema | JSONSchema[];
   additionalItems?: boolean | JSONSchema;
@@ -49,16 +53,15 @@ export interface JSONArraySchema extends JSONBasicSchema {
   uniqueItems?: boolean;
 }
 
-export interface JSONStringSchema extends JSONBasicSchema {
+export interface JSONStringSchema extends JSONBasicSchema<string> {
   type: 'string';
   minLength?: number;
   maxLength?: number;
   pattern?: string;
   format?: string;
-  enum?: any[];
 }
 
-export interface JSONNumberSchema extends JSONBasicSchema {
+export interface JSONNumberSchema extends JSONBasicSchema<number> {
   type: 'number';
   format?: string;
   minimum?: number;
@@ -68,19 +71,21 @@ export interface JSONNumberSchema extends JSONBasicSchema {
   multipleOf?: number;
 }
 
-export interface JSONConditionalSchema extends JSONBasicSchema {
+export interface JSONConditionalSchema extends JSONBasicSchema<unknown> {
   allOf?: JSONSchema[];
   anyOf?: JSONSchema[];
   oneOf?: JSONSchema[];
   not?: JSONSchema;
+
+  if?: JSONSchema;
+  then?: JSONSchema;
+  else?: JSONSchema;
 }
 
 export interface JSONSchema
-  extends SchemaWithOutType<JSONBasicSchema>,
-    SchemaWithOutType<JSONObjectSchema>,
-    SchemaWithOutType<JSONArraySchema>,
-    SchemaWithOutType<JSONStringSchema>,
-    SchemaWithOutType<JSONNumberSchema>,
-    SchemaWithOutType<JSONConditionalSchema> {
-  type?: JSONSchemaType;
-}
+  extends JSONBasicSchema<any>,
+    SchemaWithOutCommonTypes<JSONObjectSchema>,
+    SchemaWithOutCommonTypes<JSONArraySchema>,
+    SchemaWithOutCommonTypes<JSONStringSchema>,
+    SchemaWithOutCommonTypes<JSONNumberSchema>,
+    SchemaWithOutCommonTypes<JSONConditionalSchema> {}
