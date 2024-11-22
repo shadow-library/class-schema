@@ -10,9 +10,7 @@
  * Defining types
  */
 
-type SchemaWithOutCommonTypes<T> = Omit<T, 'type' | 'enum' | 'default' | 'examples' | 'const'>;
-
-export type JSONSchemaType = 'string' | 'number' | 'boolean' | 'array' | 'object';
+export type JSONSchemaType = 'string' | 'number' | 'integer' | 'boolean' | 'array' | 'object' | 'null';
 
 export interface JSONBasicSchema<T> {
   /** Basic schema properties */
@@ -82,10 +80,4 @@ export interface JSONConditionalSchema extends JSONBasicSchema<unknown> {
   else?: JSONSchema;
 }
 
-export interface JSONSchema
-  extends JSONBasicSchema<any>,
-    SchemaWithOutCommonTypes<JSONObjectSchema>,
-    SchemaWithOutCommonTypes<JSONArraySchema>,
-    SchemaWithOutCommonTypes<JSONStringSchema>,
-    SchemaWithOutCommonTypes<JSONNumberSchema>,
-    SchemaWithOutCommonTypes<JSONConditionalSchema> {}
+export type JSONSchema = JSONBasicSchema<any> | JSONObjectSchema | JSONArraySchema | JSONStringSchema | JSONNumberSchema | JSONConditionalSchema;
