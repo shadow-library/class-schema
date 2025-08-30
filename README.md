@@ -398,6 +398,64 @@ const data = {
 const transformed = transformer(data, value => new Date(value));
 ```
 
+### Masking Sensitive Data for Logging
+
+Use transformers to mask sensitive information when logging data:
+
+````typescript
+import { TransformerFactory, FieldMetadata } from '@shadow-library/class-schema';
+
+@Schema()
+class User {
+  @Field()
+  id: string;
+
+  @Field({ format: 'email' })
+  email: string;
+
+  @Field()
+  name: string;
+
+  @Field()
+  @FieldMetadata({ sensitive: true })
+  password: string;
+}
+
+const schema = ClassSchema.generate(User);
+
+// Create transformer that detects sensitive fields
+const maskingFactory = new TransformerFactory(fieldSchema => fieldSchema.sensitive === true);
+const maskingTransformer = maskingFactory.compile(schema);
+
+const userData = {
+  id: 'user123',
+  email: 'john.doe@example.com',
+  name: 'John Doe',
+  password: 'secretPassword123'
+};
+
+// Mask sensitive data for logging
+const maskedData = maskingTransformer(userData, () => 'xxxx');
+
+console.log('Original data:', userData);
+console.log('Masked for logging:', maskedData);
+
+// Output:
+// Original data: {
+//   id: 'user123',
+//   email: 'john.doe@example.com',
+//   name: 'John Doe',
+//   password: 'secretPassword123'
+// }
+//
+// Masked for logging: {
+//   id: 'user123',
+//   email: 'john.doe@example.com',
+//   name: 'John Doe',
+//   password: 'xxxx'
+// }
+```
+
 ## Array Schemas
 
 Generate schemas for arrays:
@@ -625,3 +683,4 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 ---
 
 Built with ❤️ by the Shadow Library team
+````
