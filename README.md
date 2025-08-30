@@ -402,7 +402,7 @@ const transformed = transformer(data, value => new Date(value));
 
 Use transformers to mask sensitive information when logging data:
 
-````typescript
+```typescript
 import { TransformerFactory, FieldMetadata } from '@shadow-library/class-schema';
 
 @Schema()
@@ -431,7 +431,7 @@ const userData = {
   id: 'user123',
   email: 'john.doe@example.com',
   name: 'John Doe',
-  password: 'secretPassword123'
+  password: 'secretPassword123',
 };
 
 // Mask sensitive data for logging
@@ -683,4 +683,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 ---
 
 Built with ❤️ by the Shadow Library team
-````
+
+```
+
+```
