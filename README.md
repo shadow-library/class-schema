@@ -683,7 +683,3 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 ---
 
 Built with ❤️ by the Shadow Library team
-
-```
-
-```
