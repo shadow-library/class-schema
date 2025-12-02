@@ -54,7 +54,7 @@ export class TransformerFactory {
 
   private hasTransformTargets(schema: JSONSchema): boolean {
     if (this.filter(schema)) return true;
-    if (schema.type === 'array' && schema.items && this.filter(schema.items)) return true;
+    if (schema.type === 'array' && schema.items && this.hasTransformTargets(schema.items)) return true;
 
     if (schema.type === 'object' && schema.properties) {
       const isTransformable = Object.values(schema.properties).some(subSchema => this.hasTransformTargets(subSchema));
