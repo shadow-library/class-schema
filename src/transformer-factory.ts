@@ -272,7 +272,7 @@ export class TransformerFactory {
       if (!fields.length && !refFields.length) return (this.context.transformers[schema.$id] = null);
       for (const field of fields) {
         ops += `
-          if (data.${field} != null) {
+          if ('${field}' in data) {
             const value = data.${field};
             const childContext = { parent: data, root: ctx.root, field: '${field}', path: this.constructPath(ctx.prefix, '${field}') };
             data.${field} = action(value, this.schemas['${schema.$id}'].properties.${field}, childContext);
@@ -294,7 +294,7 @@ export class TransformerFactory {
           `;
         } else {
           ops += `
-            if (data.${field} != null) {
+            if ('${field}' in data) {
               const transformer = this.transformers['${refSchema.$ref}'];
               if (transformer) {
                 const childContext = { parent: data, root: ctx.root, prefix: this.constructPath(ctx.prefix, '${field}') };

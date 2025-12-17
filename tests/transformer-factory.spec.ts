@@ -829,4 +829,104 @@ describe('TransformerFactory', () => {
       });
     });
   });
+
+  describe('undefined and null field handling', () => {
+    it('should transform field with undefined value', () => {
+      const data = { str: undefined, num: 123 };
+      const schema = {
+        [BRAND]: true,
+        $id: 'UndefinedField',
+        type: 'object',
+        properties: {
+          str: { type: 'string', tagged: true },
+          num: { type: 'number' },
+        },
+      };
+
+      const factory = new TransformerFactory(schema => !!schema.tagged);
+      const transformer = factory.compile(schema as any);
+
+      expect(transformer(data, () => 'transformed')).toStrictEqual({ str: 'transformed', num: 123 });
+    });
+
+    it('should transform field with null value', () => {
+      const data = { str: null, num: 123 };
+      const schema = {
+        [BRAND]: true,
+        $id: 'NullField',
+        type: 'object',
+        properties: {
+          str: { type: 'string', tagged: true },
+          num: { type: 'number' },
+        },
+      };
+
+      const factory = new TransformerFactory(schema => !!schema.tagged);
+      const transformer = factory.compile(schema as any);
+
+      expect(transformer(data, () => 'transformed')).toStrictEqual({ str: 'transformed', num: 123 });
+    });
+
+    it('should not transform field when key is missing from object', () => {
+      const data = { num: 123 };
+      const schema = {
+        [BRAND]: true,
+        $id: 'MissingField',
+        type: 'object',
+        properties: {
+          str: { type: 'string', tagged: true },
+          num: { type: 'number' },
+        },
+      };
+
+      const factory = new TransformerFactory(schema => !!schema.tagged);
+      const transformer = factory.compile(schema as any);
+      const fn = mock(() => 'transformed');
+
+      expect(transformer(data, fn)).toStrictEqual({ num: 123 });
+      expect(fn).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when nested ref object is undefined', () => {
+      const data = { nested: undefined };
+      const schema = {
+        [BRAND]: true,
+        $id: 'UndefinedRef',
+        type: 'object',
+        definitions: {
+          Inner: { $id: 'Inner', type: 'object', properties: { val: { type: 'string', tagged: true } } },
+        },
+        properties: {
+          nested: { $ref: 'Inner' },
+        },
+      };
+
+      const factory = new TransformerFactory(schema => !!schema.tagged);
+      const transformer = factory.compile(schema as any);
+      const fn = mock(() => 'xxx');
+
+      expect(() => transformer(data, fn)).toThrow();
+    });
+
+    it('should throw error when nested ref object is null', () => {
+      const data = { nested: null };
+      const schema = {
+        [BRAND]: true,
+        $id: 'NullRef',
+        type: 'object',
+        definitions: {
+          Inner: { $id: 'Inner', type: 'object', properties: { val: { type: 'string', tagged: true } } },
+        },
+        properties: {
+          nested: { $ref: 'Inner' },
+        },
+      };
+
+      const factory = new TransformerFactory(schema => !!schema.tagged);
+      const transformer = factory.compile(schema as any);
+      const fn = mock(() => 'xxx');
+
+      expect(() => transformer(data, fn)).toThrow();
+    });
+  });
 });
