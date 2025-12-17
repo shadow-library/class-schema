@@ -928,5 +928,107 @@ describe('TransformerFactory', () => {
 
       expect(() => transformer(data, fn)).toThrow();
     });
+
+    it('should delete field when transformed value is undefined', () => {
+      const data = { str: 'to be deleted', num: 123 };
+      const schema = {
+        [BRAND]: true,
+        $id: 'DeleteField',
+        type: 'object',
+        properties: {
+          str: { type: 'string', tagged: true },
+          num: { type: 'number' },
+        },
+      };
+
+      const factory = new TransformerFactory(schema => !!schema.tagged);
+      const transformer = factory.compile(schema as any);
+
+      expect(transformer(data, () => undefined)).toStrictEqual({ num: 123 });
+    });
+
+    it('should set field to null when transformed value is null', () => {
+      const data = { str: 'to be nullified', num: 123 };
+      const schema = {
+        [BRAND]: true,
+        $id: 'NullifyField',
+        type: 'object',
+        properties: {
+          str: { type: 'string', tagged: true },
+          num: { type: 'number' },
+        },
+      };
+
+      const factory = new TransformerFactory(schema => !!schema.tagged);
+      const transformer = factory.compile(schema as any);
+
+      expect(transformer(data, () => null)).toStrictEqual({ str: null, num: 123 });
+    });
+
+    it('should remove array item when transformed value is undefined', () => {
+      const data = { arr: [{ val: 'first' }, { val: 'second' }, { val: 'third' }] };
+      const schema = {
+        [BRAND]: true,
+        $id: 'ArrayItemNullification',
+        type: 'object',
+        definitions: { Item: { $id: 'Item', type: 'object', tagged: true, properties: { val: { type: 'string' } } } },
+        properties: { arr: { type: 'array', items: { $ref: 'Item' } } },
+      };
+
+      const factory = new TransformerFactory(schema => !!schema.tagged);
+      const transformer = factory.compile(schema as any);
+
+      const result = transformer(data, (obj: any) => (obj.val === 'second' ? undefined : obj));
+      expect(result).toStrictEqual({ arr: [{ val: 'first' }, { val: 'third' }] });
+    });
+
+    it('should set array item to null when transformed value is null', () => {
+      const data = { arr: [{ val: 'first' }, { val: 'second' }, { val: 'third' }] };
+      const schema = {
+        [BRAND]: true,
+        $id: 'ArrayItemNullification',
+        type: 'object',
+        definitions: { Item: { $id: 'Item', type: 'object', tagged: true, properties: { val: { type: 'string' } } } },
+        properties: { arr: { type: 'array', items: { $ref: 'Item' } } },
+      };
+
+      const factory = new TransformerFactory(schema => !!schema.tagged);
+      const transformer = factory.compile(schema as any);
+
+      const result = transformer(data, (obj: any) => (obj.val === 'second' ? null : obj));
+      expect(result).toStrictEqual({ arr: [{ val: 'first' }, null, { val: 'third' }] });
+    });
+
+    it('should remove the nested field when transformed value is undefined', () => {
+      const data = { nested: { val: 'to be removed', other: 42 } };
+      const schema = {
+        [BRAND]: true,
+        $id: 'NestedFieldDeletion',
+        type: 'object',
+        definitions: { Nested: { $id: 'Nested', type: 'object', properties: { val: { type: 'string' }, other: { type: 'number' } } } },
+        properties: { nested: { $ref: 'Nested', tagged: true } },
+      };
+
+      const factory = new TransformerFactory(schema => !!schema.tagged);
+      const transformer = factory.compile(schema as any);
+
+      expect(transformer(data, () => undefined)).toStrictEqual({});
+    });
+
+    it('should set the nested field to null when transformed value is null', () => {
+      const data = { nested: { val: 'to be nullified', other: 42 } };
+      const schema = {
+        [BRAND]: true,
+        $id: 'NestedFieldDeletion',
+        type: 'object',
+        definitions: { Nested: { type: 'object', properties: { val: { type: 'string' }, other: { type: 'number' } } } },
+        properties: { nested: { $ref: 'Nested', tagged: true } },
+      };
+
+      const factory = new TransformerFactory(schema => !!schema.tagged);
+      const transformer = factory.compile(schema as any);
+
+      expect(transformer(data, () => null)).toStrictEqual({ nested: null });
+    });
   });
 });
