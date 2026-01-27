@@ -377,7 +377,7 @@ describe('ClassSchema', () => {
       });
     });
 
-    it('should generate the schema multiple enums', () => {
+    it('should generate the schema for multiple enums', () => {
       @Schema({ $id: User.name })
       class User {
         @Field()

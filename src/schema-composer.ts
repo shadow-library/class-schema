@@ -49,9 +49,9 @@ export class SchemaComposer {
     return this.createClass({ opName: 'discriminator', op: 'oneOf', classes: Classes, discriminatorKey: key }) as T[number];
   }
 
-  static enum(id: string, values: string[] | number[]): Class<unknown> {
+  static enum(name: string, values: string[] | number[]): Class<unknown> {
     class EnumClass extends EnumType {
-      static override readonly id = `class-schema:${id}-enum-${getCounterId()}`;
+      static override readonly id = `class-schema:${name}-enum-${getCounterId()}`;
       static override readonly values = values;
       static override readonly type = typeof values[0] === 'number' ? 'number' : 'string';
     }
