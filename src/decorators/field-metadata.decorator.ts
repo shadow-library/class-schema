@@ -20,7 +20,7 @@ import { METADATA_KEYS } from '@lib/constants';
 
 export function FieldMetadata(options: Record<string, any>): PropertyDecorator {
   return (target, propertyKey) => {
-    assert(typeof propertyKey === 'string', `Cannot apply @Field() to symbol ${propertyKey.toString()}`);
+    assert(typeof propertyKey === 'string', `Cannot apply @FieldMetadata() to symbol ${propertyKey.toString()}`);
     Reflector.updateMetadata(METADATA_KEYS.FIELD_OPTIONS, options, target, propertyKey);
   };
 }

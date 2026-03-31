@@ -75,4 +75,4 @@ if (fs.existsSync(tsbuildinfo)) fs.rmSync(tsbuildinfo);
 
 const endTime = process.hrtime(startTime);
 const timeTaken = endTime[0] * 1e3 + endTime[1] * 1e-6;
-success(`Built successfull in ${formatTime(timeTaken)}`);
+success(`Built successfully in ${formatTime(timeTaken)}`);

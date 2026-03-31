@@ -74,6 +74,6 @@ describe('@FieldMetadata', () => {
       }
 
       return Sample;
-    }).toThrow('Cannot apply @Field() to symbol Symbol(key)');
+    }).toThrow('Cannot apply @FieldMetadata() to symbol Symbol(key)');
   });
 });

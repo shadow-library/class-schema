@@ -104,9 +104,11 @@ export class TransformerFactory {
   private hasUniqueFieldValues(fieldDef: FieldDefinition, key: keyof FieldVariantSpec): boolean {
     switch (key) {
       case 'const': {
-        const allValues = Object.values(fieldDef.variants).filter(v => v.const !== undefined);
-        const uniqueValues = new Set(allValues);
-        return allValues.length > 0 && uniqueValues.size === allValues.length;
+        const allConstValues = Object.values(fieldDef.variants)
+          .filter(v => v.const !== undefined)
+          .map(v => JSON.stringify(v.const));
+        const uniqueValues = new Set(allConstValues);
+        return allConstValues.length > 0 && uniqueValues.size === allConstValues.length;
       }
 
       case 'type': {
@@ -161,7 +163,7 @@ export class TransformerFactory {
         const variantSpec = validConstDiscriminator.variants[variant.$id];
         assert(variantSpec?.const !== undefined, 'Variant must have a const value for the discriminator field');
         const value = JSON.stringify(variantSpec.const);
-        const condition = `data.${validConstDiscriminator.name} === ${value}`;
+        const condition = `data[${JSON.stringify(validConstDiscriminator.name)}] === ${value}`;
         discriminator.push({ condition, schemaId: variant.$id });
       }
 
@@ -175,7 +177,7 @@ export class TransformerFactory {
       if (typeDiscriminators.has(typeField.name)) continue;
       for (const schemaId in typeField.variants) {
         const variantSpec = typeField.variants[schemaId] as FieldVariantSpec;
-        const condition = `typeof data.${typeField.name} === '${variantSpec.type}'`;
+        const condition = `typeof data[${JSON.stringify(typeField.name)}] === '${variantSpec.type}'`;
         typeDiscriminators.set(schemaId, condition);
       }
     }
@@ -190,8 +192,8 @@ export class TransformerFactory {
       for (const variant of variants) {
         const variantSpec = validEnumDiscriminator.variants[variant.$id] as FieldVariantSpec;
         assert(variantSpec?.enum !== undefined, 'Variant must have an enum value for the discriminator field');
-        let condition = `${JSON.stringify(variantSpec.enum)}.includes(data.${validEnumDiscriminator.name})`;
-        if (this.getRuntime() === 'bun') condition = variantSpec.enum.map(value => `data.${validEnumDiscriminator.name} === ${JSON.stringify(value)}`).join(' || ');
+        let condition = `${JSON.stringify(variantSpec.enum)}.includes(data[${JSON.stringify(validEnumDiscriminator.name)}])`;
+        if (this.getRuntime() === 'bun') condition = variantSpec.enum.map(value => `data[${JSON.stringify(validEnumDiscriminator.name)}] === ${JSON.stringify(value)}`).join(' || ');
         discriminator.push({ condition, schemaId: variant.$id });
       }
 
@@ -270,36 +272,38 @@ export class TransformerFactory {
       }
 
       for (const field of fields) {
+        const escapedField = JSON.stringify(field);
         ops += `
-          if ('${field}' in data) {
-            const value = data.${field};
-            const childContext = { parent: data, root: ctx.root, field: '${field}', path: this.constructPath(ctx.prefix, '${field}') };
-            data.${field} = action(value, this.schemas['${schema.$id}'].properties.${field}, childContext);
-            if (data.${field} === undefined) delete data.${field};
+          if (${escapedField} in data) {
+            const value = data[${escapedField}];
+            const childContext = { parent: data, root: ctx.root, field: ${escapedField}, path: this.constructPath(ctx.prefix, ${escapedField}) };
+            data[${escapedField}] = action(value, this.schemas['${schema.$id}'].properties[${escapedField}], childContext);
+            if (data[${escapedField}] === undefined) delete data[${escapedField}];
           }
         `;
       }
 
       for (const field of refFields) {
+        const escapedField = JSON.stringify(field);
         const refSchema = schema.properties[field] as JSONSchema;
         if (refSchema.type === 'array') {
           ops += `
-            if (Array.isArray(data.${field})) {
+            if (Array.isArray(data[${escapedField}])) {
               const transformer = this.transformers['${refSchema.items?.$ref}'];
               if (transformer) {
-                const getContext = (index) => ({ parent: data, root: ctx.root, prefix: this.constructPath(ctx.prefix, '${field}.' + index) });
-                data.${field} = data.${field}.map((value, index) => transformer(value, action, getContext(index))).filter(value => value !== undefined);
+                const getContext = (index) => ({ parent: data, root: ctx.root, prefix: this.constructPath(ctx.prefix, ${escapedField} + '.' + index) });
+                data[${escapedField}] = data[${escapedField}].map((value, index) => transformer(value, action, getContext(index))).filter(value => value !== undefined);
               }
             }
           `;
         } else {
           ops += `
-            if ('${field}' in data) {
+            if (${escapedField} in data) {
               const transformer = this.transformers['${refSchema.$ref}'];
               if (transformer) {
-                const childContext = { parent: data, root: ctx.root, prefix: this.constructPath(ctx.prefix, '${field}') };
-                data.${field} = transformer(data.${field}, action, childContext);
-                if (data.${field} === undefined) delete data.${field};
+                const childContext = { parent: data, root: ctx.root, prefix: this.constructPath(ctx.prefix, ${escapedField}) };
+                data[${escapedField}] = transformer(data[${escapedField}], action, childContext);
+                if (data[${escapedField}] === undefined) delete data[${escapedField}];
               }
             }
           `;

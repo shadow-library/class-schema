@@ -767,6 +767,26 @@ describe('TransformerFactory', () => {
         const data = { value: 3, aField: 'a', bField: 'b' };
         expect(transformer(data, () => 'xxx')).toStrictEqual({ value: 3, aField: 'xxx', bField: 'xxx' });
       });
+
+      it('should fall back when const discriminator values are duplicated across variants', () => {
+        const schema = {
+          [BRAND]: true,
+          $id: 'DuplicateConstDiscriminator',
+          type: 'object',
+          definitions: {
+            VariantA: { $id: 'VariantA', type: 'object', required: ['kind', 'fieldA'], properties: { kind: { const: 'same' }, fieldA: { type: 'string', tagged: true } } },
+            VariantB: { $id: 'VariantB', type: 'object', required: ['kind', 'fieldB'], properties: { kind: { const: 'same' }, fieldB: { type: 'string', tagged: true } } },
+          },
+          oneOf: [{ $ref: 'VariantA' }, { $ref: 'VariantB' }],
+        };
+
+        const factory = new TransformerFactory(schema => !!schema.tagged);
+        const transformer = factory.compile(schema as any);
+
+        /** Since const values are duplicated, no const discriminator is used, all transformers apply */
+        const data = { kind: 'same', fieldA: 'a', fieldB: 'b' };
+        expect(transformer(data, () => 'xxx')).toStrictEqual({ kind: 'same', fieldA: 'xxx', fieldB: 'xxx' });
+      });
     });
 
     describe('nested discriminator schemas', () => {
