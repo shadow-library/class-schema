@@ -1,3 +1,6 @@
+> **Archived — migrated to the [platform monorepo](https://github.com/shadow-library/platform).**
+> This code now lives at [`packages/class-schema`](https://github.com/shadow-library/platform/tree/main/packages/class-schema) with its full history; this repository is read-only.
+
 # @shadow-library/class-schema
 
 [![npm version](https://badge.fury.io/js/@shadow-library%2Fclass-schema.svg)](https://badge.fury.io/js/@shadow-library%2Fclass-schema)
